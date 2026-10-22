@@ -1,119 +1,50 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - VYPEXO</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f7fb">
+  <title>Create account | VYPEXO</title>
+  <link rel="stylesheet" href="auth.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="supabase-client.js" defer></script>
+  <script src="signup.js" defer></script>
 </head>
 <body>
-  <h1>Create your VYPEXO account</h1>
-
-  <form id="signupForm">
-    <label for="fullName">Full name</label><br>
-    <input id="fullName" type="text" maxlength="100" required>
-    <br><br>
-
-    <label for="email">Email</label><br>
-    <input id="email" type="email" autocomplete="email" required>
-    <br><br>
-
-    <label for="password">Password (at least 8 characters)</label><br>
-    <input id="password" type="password"
-      minlength="8" autocomplete="new-password" required>
-    <br><br>
-
-    <label for="role">Account type</label><br>
-    <select id="role" required>
-      <option value="buyer">Buyer</option>
-      <option value="seller">Seller (request access)</option>
-    </select>
-    <br><br>
-
-    <button id="signupButton" type="submit">Create account</button>
-    <p id="message" role="status" aria-live="polite"></p>
-  </form>
-
-  <p>Already registered? <a href="login.html">Login</a></p>
-
-  <script>
-    const SUPABASE_URL =
-      'https://naidbmtqwckrwxioibea.supabase.co';
-    const SUPABASE_ANON_KEY =
-      'sb_publishable_VlMCQAHqYujmr9uqVSKoag_yOjrDH4Q';
-
-    const { createClient } = window.supabase;
-    const supabaseClient = createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
-
-    const form = document.getElementById('signupForm');
-    const button = document.getElementById('signupButton');
-    const message = document.getElementById('message');
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const fullName =
-        document.getElementById('fullName').value.trim();
-      const email =
-        document.getElementById('email').value.trim();
-      const password =
-        document.getElementById('password').value;
-      const requestedRole =
-        document.getElementById('role').value;
-
-      if (!fullName || fullName.length > 100) {
-        message.textContent = 'Please enter a valid name.';
-        return;
-      }
-
-      if (!['buyer', 'seller'].includes(requestedRole)) {
-        message.textContent = 'Invalid account type.';
-        return;
-      }
-
-      button.disabled = true;
-      message.textContent = 'Creating your account...';
-
-      try {
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              requested_role: requestedRole
-            },
-            emailRedirectTo: window.location.origin + '/login.html'
-          }
-        });
-
-        if (error) throw error;
-        if (!data.user) throw new Error('Account creation was not confirmed.');
-
-        if (requestedRole === 'seller') {
-          message.textContent =
-            'Account created. Confirm your email if requested. Seller access requires approval.';
-        } else {
-          message.textContent =
-            'Account created. Check your email to confirm your account, then log in.';
-        }
-
-        if (data.session) {
-          setTimeout(() => {
-            window.location.href = 'login.html';
-          }, 1500);
-        }
-      } catch (error) {
-        console.error('Signup error:', error);
-        message.textContent = error.message || 'Signup failed.';
-      } finally {
-        button.disabled = false;
-      }
-    });
-  </script>
+  <main class="auth-shell">
+    <header class="brand">
+      <div class="brand-name">VYPEXO</div>
+      <p class="brand-tagline">Find it. Love it. Make it yours.</p>
+    </header>
+    <section class="auth-card" aria-labelledby="page-title">
+      <h1 id="page-title">Create your account</h1>
+      <p class="intro">Join VYPEXO in just a few steps.</p>
+      <form id="signupForm">
+        <div class="field">
+          <label for="fullName">Full name</label>
+          <input id="fullName" name="fullName" type="text" autocomplete="name" maxlength="100" required>
+        </div>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>
+        </div>
+        <div class="field">
+          <label for="password">Password (at least 8 characters)</label>
+          <input id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
+        </div>
+        <div class="field">
+          <label for="role">I want to</label>
+          <select id="role" name="role" required>
+            <option value="buyer">Shop as a buyer</option>
+            <option value="seller">Request seller access</option>
+          </select>
+        </div>
+        <button id="signupButton" type="submit">Create account</button>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+        <p class="note">Seller access may require review. Choosing seller does not grant admin or seller permissions automatically.</p>
+      </form>
+      <p class="auth-footer">Already have an account? <a href="login.html">Log in</a></p>
+    </section>
+  </main>
 </body>
 </html>
