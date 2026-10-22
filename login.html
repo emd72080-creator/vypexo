@@ -1,95 +1,38 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - VYPEXO</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f7fb">
+  <title>Log in | VYPEXO</title>
+  <link rel="stylesheet" href="auth.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="supabase-client.js" defer></script>
+  <script src="login.js" defer></script>
 </head>
 <body>
-  <h1>Login to VYPEXO</h1>
-
-  <form id="loginForm">
-    <label for="email">Email</label><br>
-    <input id="email" type="email" autocomplete="email" required>
-    <br><br>
-
-    <label for="password">Password</label><br>
-    <input id="password" type="password"
-      autocomplete="current-password" required>
-    <br><br>
-
-    <button id="loginButton" type="submit">Login</button>
-    <p id="message" role="status" aria-live="polite"></p>
-  </form>
-
-  <p>Don't have an account? <a href="signup.html">Sign up</a></p>
-
-  <script>
-    const SUPABASE_URL =
-      'https://naidbmtqwckrwxioibea.supabase.co';
-    const SUPABASE_ANON_KEY =
-      'sb_publishable_VlMCQAHqYujmr9uqVSKoag_yOjrDH4Q';
-
-    const { createClient } = window.supabase;
-    const supabaseClient = createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
-
-    const form = document.getElementById('loginForm');
-    const button = document.getElementById('loginButton');
-    const message = document.getElementById('message');
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      button.disabled = true;
-      message.textContent = 'Logging in...';
-
-      try {
-        const { data, error } =
-          await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
-
-        if (error) throw error;
-        if (!data.user) throw new Error('Login could not be verified.');
-
-        const { data: profile, error: profileError } =
-          await supabaseClient
-            .from('profiles')
-            .select('role')
-            .eq('id', data.user.id)
-            .maybeSingle();
-
-        if (profileError) {
-          throw new Error(
-            'Could not load your profile. Check the profiles table and permissions.'
-          );
-        }
-
-        const role = profile?.role || 'buyer';
-
-        if (role === 'admin') {
-          window.location.href = 'admin.html';
-        } else if (role === 'seller') {
-          window.location.href = 'seller-dashboard.html';
-        } else {
-          window.location.href = 'index.html';
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        message.textContent = error.message || 'Login failed.';
-      } finally {
-        button.disabled = false;
-      }
-    });
-  </script>
+  <main class="auth-shell">
+    <header class="brand">
+      <div class="brand-name">VYPEXO</div>
+      <p class="brand-tagline">Your next favorite find starts here.</p>
+    </header>
+    <section class="auth-card" aria-labelledby="page-title">
+      <h1 id="page-title">Welcome back</h1>
+      <p class="intro">Log in to continue to your account.</p>
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button id="loginButton" type="submit">Log in</button>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </form>
+      <p class="auth-footer">New to VYPEXO? <a href="signup.html">Create an account</a></p>
+    </section>
+  </main>
 </body>
 </html>
