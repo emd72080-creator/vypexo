@@ -1,42 +1,34 @@
-
 const SUPABASE_URL = 'https://naidbmtqwckrwxioibea.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_VlMCQAHqYujmr9uqVSKoag_yOjrDH4Q';
 
 if (!window.supabase) {
-  throw new Error('Supabase library is not loaded. Check the script tag.');
+  throw new Error('Supabase library is not loaded.');
 }
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+window.VYPEXO_SUPABASE =
+  window.VYPEXO_SUPABASE ||
+  window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function checkAccess(requiredRole = null) {
+  const client = window.VYPEXO_SUPABASE;
+
   try {
-    const { data, error } = await supabaseClient.auth.getUser();
+    const { data, error } = await client.auth.getUser();
 
     if (error || !data.user) {
-      alert('Please login first!');
       window.location.href = 'login.html';
       return false;
     }
 
-    const user = data.user;
-
     if (requiredRole) {
-      const { data: profile, error: profileError } =
-        await supabaseClient
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
+      const { data: profile, error: profileError } = await client
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle();
 
-      if (
-        profileError ||
-        !profile ||
-        profile.role !== requiredRole
-      ) {
-        alert('Access denied!');
+      if (profileError || !profile || profile.role !== requiredRole) {
+        alert('Access denied.');
         window.location.href = 'index.html';
         return false;
       }
@@ -45,7 +37,7 @@ async function checkAccess(requiredRole = null) {
     return true;
   } catch (error) {
     console.error('Access check failed:', error);
-    alert('Could not verify access. Please try again.');
+    alert('Could not verify your account. Please try again.');
     window.location.href = 'login.html';
     return false;
   }
