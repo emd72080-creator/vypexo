@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -7,23 +8,25 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
   <h2>Create an Account</h2>
-  
+
   <form id="signupForm">
     <div>
       <label for="fullName">Full Name:</label><br>
-      <input type="text" id="fullName" required placeholder="Enter your full name">
+      <input type="text" id="fullName" required maxlength="100"
+             placeholder="Enter your full name">
     </div>
     <br>
     <div>
       <label for="email">Email:</label><br>
-      <input type="email" id="email" required placeholder="Enter your email">
+      <input type="email" id="email" required
+             placeholder="Enter your email">
     </div>
     <br>
     <div>
       <label for="password">Password:</label><br>
-      <input type="password" id="password" required placeholder="Enter password">
+      <input type="password" id="password" required minlength="8"
+             autocomplete="new-password" placeholder="At least 8 characters">
     </div>
     <br>
     <div>
@@ -34,53 +37,77 @@
       </select>
     </div>
     <br>
-    <button type="submit">Sign Up</button>
+    <button type="submit" id="signupButton">Sign Up</button>
+    <p id="message" role="status" aria-live="polite"></p>
   </form>
 
   <script>
     const SUPABASE_URL = 'https://naidbmtqwckrwxioibea.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_VlMCQAHqYujmr9uqVSKoag_yOjrDH4Q';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function handleSignup(email, password, role, fullName) {
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-      });
+    const { createClient } = window.supabase;
+    const supabaseClient = createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-      if (error) {
-        alert("Signup failed: " + error.message);
-        return;
-      }
+    const form = document.getElementById('signupForm');
+    const button = document.getElementById('signupButton');
+    const message = document.getElementById('message');
 
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            { id: data.user.id, email: email, full_name: fullName, role: role }
-          ]);
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-        if (profileError) {
-          console.error("Profile save error:", profileError);
-          alert("Error saving profile details.");
-        } else {
-          alert("Signup successful!");
-          window.location.href = "login.html";
-        }
-      }
-    }
-
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const fullName = document.getElementById('fullName').value;
-      const email = document.getElementById('email').value;
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const role = document.getElementById('role').value;
 
-      await handleSignup(email, password, role, fullName);
+      if (!fullName || fullName.length > 100) {
+        message.textContent = 'Please enter a valid full name.';
+        return;
+      }
+
+      if (!['buyer', 'seller'].includes(role)) {
+        message.textContent = 'Invalid account type.';
+        return;
+      }
+
+      button.disabled = true;
+      message.textContent = 'Creating your account...';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              requested_role: role
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        if (!data.user) {
+          throw new Error('Account creation could not be confirmed.');
+        }
+
+        message.textContent = data.session
+          ? 'Account created. Redirecting to login...'
+          : 'Account created. Check your email to confirm your account.';
+
+        if (data.session) {
+          window.location.href = 'login.html';
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        message.textContent = 'Signup failed: ' + error.message;
+      } finally {
+        button.disabled = false;
+      }
     });
   </script>
-
 </body>
 </html>
