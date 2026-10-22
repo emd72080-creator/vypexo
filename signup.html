@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,42 +8,40 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h2>Create an Account</h2>
+  <h1>Create your VYPEXO account</h1>
 
   <form id="signupForm">
-    <div>
-      <label for="fullName">Full Name:</label><br>
-      <input type="text" id="fullName" required maxlength="100"
-             placeholder="Enter your full name">
-    </div>
-    <br>
-    <div>
-      <label for="email">Email:</label><br>
-      <input type="email" id="email" required
-             placeholder="Enter your email">
-    </div>
-    <br>
-    <div>
-      <label for="password">Password:</label><br>
-      <input type="password" id="password" required minlength="8"
-             autocomplete="new-password" placeholder="At least 8 characters">
-    </div>
-    <br>
-    <div>
-      <label for="role">Account Type:</label><br>
-      <select id="role" required>
-        <option value="buyer">Buyer (Kreta)</option>
-        <option value="seller">Seller (Bikreta)</option>
-      </select>
-    </div>
-    <br>
-    <button type="submit" id="signupButton">Sign Up</button>
+    <label for="fullName">Full name</label><br>
+    <input id="fullName" type="text" maxlength="100" required>
+    <br><br>
+
+    <label for="email">Email</label><br>
+    <input id="email" type="email" autocomplete="email" required>
+    <br><br>
+
+    <label for="password">Password (at least 8 characters)</label><br>
+    <input id="password" type="password"
+      minlength="8" autocomplete="new-password" required>
+    <br><br>
+
+    <label for="role">Account type</label><br>
+    <select id="role" required>
+      <option value="buyer">Buyer</option>
+      <option value="seller">Seller (request access)</option>
+    </select>
+    <br><br>
+
+    <button id="signupButton" type="submit">Create account</button>
     <p id="message" role="status" aria-live="polite"></p>
   </form>
 
+  <p>Already registered? <a href="login.html">Login</a></p>
+
   <script>
-    const SUPABASE_URL = 'https://naidbmtqwckrwxioibea.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_VlMCQAHqYujmr9uqVSKoag_yOjrDH4Q';
+    const SUPABASE_URL =
+      'https://naidbmtqwckrwxioibea.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'sb_publishable_VlMCQAHqYujmr9uqVSKoag_yOjrDH4Q';
 
     const { createClient } = window.supabase;
     const supabaseClient = createClient(
@@ -58,17 +56,21 @@
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const role = document.getElementById('role').value;
+      const fullName =
+        document.getElementById('fullName').value.trim();
+      const email =
+        document.getElementById('email').value.trim();
+      const password =
+        document.getElementById('password').value;
+      const requestedRole =
+        document.getElementById('role').value;
 
       if (!fullName || fullName.length > 100) {
-        message.textContent = 'Please enter a valid full name.';
+        message.textContent = 'Please enter a valid name.';
         return;
       }
 
-      if (!['buyer', 'seller'].includes(role)) {
+      if (!['buyer', 'seller'].includes(requestedRole)) {
         message.textContent = 'Invalid account type.';
         return;
       }
@@ -83,27 +85,31 @@
           options: {
             data: {
               full_name: fullName,
-              requested_role: role
-            }
+              requested_role: requestedRole
+            },
+            emailRedirectTo: window.location.origin + '/login.html'
           }
         });
 
         if (error) throw error;
+        if (!data.user) throw new Error('Account creation was not confirmed.');
 
-        if (!data.user) {
-          throw new Error('Account creation could not be confirmed.');
+        if (requestedRole === 'seller') {
+          message.textContent =
+            'Account created. Confirm your email if requested. Seller access requires approval.';
+        } else {
+          message.textContent =
+            'Account created. Check your email to confirm your account, then log in.';
         }
 
-        message.textContent = data.session
-          ? 'Account created. Redirecting to login...'
-          : 'Account created. Check your email to confirm your account.';
-
         if (data.session) {
-          window.location.href = 'login.html';
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1500);
         }
       } catch (error) {
         console.error('Signup error:', error);
-        message.textContent = 'Signup failed: ' + error.message;
+        message.textContent = error.message || 'Signup failed.';
       } finally {
         button.disabled = false;
       }
